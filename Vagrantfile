@@ -40,6 +40,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     agent40.vm.network "private_network", ip: "10.40.40.40"
     agent40.vm.hostname = "agent40"
     agent40.vm.network "forwarded_port", guest: 8500, host: 8500
+    agent40.vm.provision "shell", inline: "wget --quiet -O /home/vagrant/0.4.1_web_ui.zip https://dl.bintray.com/mitchellh/consul/0.4.1_web_ui.zip"
+    agent40.vm.provision "shell", inline: "unzip -d /home/vagrant/ /home/vagrant/0.4.1_web_ui.zip && chown -R vagrant:vagrant /home/vagrant/0.4.1_web_ui.zip /home/vagrant/dist"
   end
 
   filename = "0.4.1_linux_amd64.zip"
