@@ -15,11 +15,10 @@ This will boot 4 machines, on 4 different internal IPs:
 
 From within the machines, you can boot the consul agents:
 
-    vagrant@consul10 $ consul agent -server -advertise 10.10.10.10 -bootstrap-expect 3 -data-dir /var/lib/consul
-    vagrant@consul20 $ consul agent -server -advertise 10.20.20.20 -bootstrap-expect 3 -data-dir /var/lib/consul
-    vagrant@consul30 $ consul agent -server -advertise 10.30.30.30 -bootstrap-expect 3 -data-dir /var/lib/consul
-    vagrant@consul30 $ consul join 10.10.10.10 10.20.20.20 10.30.30.30
-    vagrant@agent40 $ consul join 10.10.10.10 -data-dir /var/lib/consul
+    vagrant@consul10 $ consul agent -config-dir /etc/consul.d
+    vagrant@consul20 $ consul agent -config-dir /etc/consul.d
+    vagrant@consul30 $ consul agent -config-dir /etc/consul.d
+    vagrant@agent40 $ rm -f /etc/consul.d/server.json && consul agent -config-dir /etc/consul.d
 
 # dotfiles and such
 

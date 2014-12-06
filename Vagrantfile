@@ -43,11 +43,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   filename = "0.4.1_linux_amd64.zip"
-  config.vm.provision "shell", inline: <<-EOSH
-    apt-get update -y ; apt-get upgrade -y
+  config.vm.provision "shell", inline: <<-EOSH.gsub(/^ {4}/, "")
+    apt-get update -qq -y
+    apt-get upgrade -qq -y
     apt-get install -y zip vim-nox zsh git byobu daemontools
     chsh -s /bin/zsh vagrant
-    mkdir -p /var/lib/consul && chown vagrant:vagrant /var/lib/consul
+    mkdir -p /var/lib/consul /etc/consul.d
+    echo > /etc/consul.d/bind.json '{ "bind_addr": "'$( ifconfig | grep eth1 -A1 | tail -n 1 | cut -d : -f 2 | awk '{print $1}' )'" }'
+    echo > /etc/consul.d/server.json '{ "bootstrap_expect": 3, "server": true }'
+    cat <<-EOF > /etc/consul.d/base.json
+    {
+      "data_dir": "/var/lib/consul",
+      "retry_join": ["10.10.10.10", "10.20.20.20", "10.30.30.30"]
+    }
+    EOF
+    chown -R vagrant:vagrant /etc/consul.d /var/lib/consul
 
     if [ ! -f /usr/local/src/#{filename} ]
     then
@@ -57,7 +67,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # -d = target directory
       unzip -o -u -d /usr/local/bin/ /usr/local/src/#{filename}
     else
-      echo "#{filename} already exists, not downloading or unziping"
+      echo "#{filename} already exists, not downloading or unzipping"
     fi
 
     if [ ! -d /home/vagrant/dotfiles ]
@@ -67,5 +77,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     else
       echo "/home/vagrant/dotfiles already exists: no cloning to do"
     fi
+
+    cat <<-EOF > /etc/hosts
+    127.0.0.1 localhost
+    10.10.10.10 consul10
+    10.20.20.20 consul20
+    10.30.30.30 consul30
+    10.40.40.40 agent40
+    EOF
   EOSH
 end
