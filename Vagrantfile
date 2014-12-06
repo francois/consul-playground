@@ -1,0 +1,71 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.box_check_update = true
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "10.0.0.15"
+
+  config.ssh.forward_agent = true
+
+  config.vm.define "default", autostart: false
+
+  config.vm.define "consul10" do |consul10|
+    consul10.vm.network "private_network", ip: "10.10.10.10"
+    consul10.vm.hostname = "consul10"
+  end
+
+  config.vm.define "consul20" do |consul20|
+    consul20.vm.network "private_network", ip: "10.20.20.20"
+    consul20.vm.hostname = "consul20"
+  end
+
+  config.vm.define "consul30" do |consul30|
+    consul30.vm.network "private_network", ip: "10.30.30.30"
+    consul30.vm.hostname = "consul30"
+  end
+
+  config.vm.define "agent40" do |agent40|
+    agent40.vm.network "private_network", ip: "10.40.40.40"
+    agent40.vm.hostname = "agent40"
+    agent40.vm.network "forwarded_port", guest: 8500, host: 8500
+  end
+
+  filename = "0.4.1_linux_amd64.zip"
+  config.vm.provision "shell", inline: <<-EOSH
+    apt-get update -y ; apt-get upgrade -y
+    apt-get install -y zip vim-nox zsh git byobu daemontools
+    chsh -s /bin/zsh vagrant
+    mkdir -p /var/lib/consul && chown vagrant:vagrant /var/lib/consul
+
+    if [ ! -f /usr/local/src/#{filename} ]
+    then
+      wget --quiet --output-document=/usr/local/src/#{filename} https://dl.bintray.com/mitchellh/consul/#{filename}
+      # -o = overwrite, no prompt (equivalent to force)
+      # -u = update (create or freshen)
+      # -d = target directory
+      unzip -o -u -d /usr/local/bin/ /usr/local/src/#{filename}
+    else
+      echo "#{filename} already exists, not downloading or unziping"
+    fi
+
+    if [ ! -d /home/vagrant/dotfiles ]
+    then
+      git clone git://github.com/francois/dotfiles.git /home/vagrant/dotfiles
+      chown -R vagrant:vagrat /home/vagrant/dotfiles
+    else
+      echo "/home/vagrant/dotfiles already exists: no cloning to do"
+    fi
+  EOSH
+end
