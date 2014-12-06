@@ -73,7 +73,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     if [ ! -d /home/vagrant/dotfiles ]
     then
       git clone git://github.com/francois/dotfiles.git /home/vagrant/dotfiles
-      chown -R vagrant:vagrat /home/vagrant/dotfiles
+      chown -R vagrant:vagrant /home/vagrant/dotfiles
     else
       echo "/home/vagrant/dotfiles already exists: no cloning to do"
     fi
